@@ -2040,12 +2040,23 @@ class ModelStore {
 
   private async initializeGpuSettings() {
     const gpuCapabilities = await checkGpuSupport();
+    const isHighEnd = await isHighEndDevice();
 
-    // If GPU is not supported but currently enabled, disable it
-    if (
+    // On high-end Android devices (like S25 Ultra), we want to enable GPU by default
+    // if supported, even if not previously set.
+    if (gpuCapabilities.isSupported && isHighEnd) {
+      runInAction(() => {
+        this.contextInitParams = {
+          ...this.contextInitParams,
+          no_gpu_devices: false,
+          n_gpu_layers: 99, // Force full offload
+        };
+      });
+    } else if (
       !gpuCapabilities.isSupported &&
       this.contextInitParams.no_gpu_devices === false
     ) {
+      // If GPU is not supported but currently enabled, disable it
       runInAction(() => {
         this.contextInitParams = {
           ...this.contextInitParams,
@@ -2056,6 +2067,7 @@ class ModelStore {
     }
     // If GPU is supported, the persisted value will be used
   }
+
 
   setNoGpuDevices = (no_gpu_devices: boolean) => {
     runInAction(() => {

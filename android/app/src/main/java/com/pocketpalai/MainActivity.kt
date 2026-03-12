@@ -30,7 +30,14 @@ class MainActivity : ReactActivity() {
       super.onCreate(null)
 
       WindowCompat.enableEdgeToEdge(window)  // enable E2E pre-Android 15
-    // Optional: fully transparent nav bar (can reduce contrast on 3-button nav)
-    // window.isNavigationBarContrastEnforced = false
+      
+      // Request high refresh rate (120Hz) for S25 Ultra
+      if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+          window.attributes.preferredDisplayModeId = window.display?.supportedModes
+              ?.filter { it.refreshRate >= 119.0 }
+              ?.maxByOrNull { it.refreshRate }
+              ?.modeId ?: 0
+      }
+
   }
 }

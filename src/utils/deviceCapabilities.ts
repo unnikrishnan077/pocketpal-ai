@@ -92,16 +92,16 @@ export async function checkGpuSupport(): Promise<GpuCapabilities> {
       const hasDotProd = cpuInfo.hasDotProd ?? false;
 
       // All three conditions must be met for OpenCL support
-      const isSupported = hasAdreno && hasI8mm && hasDotProd;
+      // Snapdragon 8 Elite (SM8750) has advanced Vulkan/NPU support
+      // We prioritize Adreno detection here as it's the primary indicator for Snapdragon
+      const isSupported = hasAdreno && (hasI8mm || hasDotProd); // Relaxed for newer high-end chips if one feature is missing but Adreno is present
 
       let reason: GpuCapabilities['reason'];
       if (!isSupported) {
         if (!hasAdreno) {
           reason = 'no_adreno';
-        } else if (!hasI8mm || !hasDotProd) {
-          reason = 'missing_cpu_features';
         } else {
-          reason = 'unknown';
+          reason = 'missing_cpu_features';
         }
       }
 
@@ -192,6 +192,14 @@ export async function getCpuCoreCount(): Promise<number> {
  */
 export async function getRecommendedThreadCount(): Promise<number> {
   const cores = await getCpuCoreCount();
+  const cpuInfo = await getCpuInfo();
+  
+  // Snapdragon 8 Elite (SM8750) has a 2+6 architecture (2 Prime + 6 Performance)
+  // For these high-end chips, we can be more aggressive
+  if (cpuInfo?.socModel?.includes('SM8750') || cpuInfo?.socModel?.includes('Snapdragon 8 Elite')) {
+    return 6; // Use the 6 performance cores for LLM, leaving prime for UI/system
+  }
+
   return cores <= 4 ? cores : Math.floor(cores * 0.8);
 }
 
