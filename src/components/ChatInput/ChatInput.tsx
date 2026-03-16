@@ -222,6 +222,10 @@ export const ChatInput = observer(
           type: 'text',
           imageUris: selectedImages.length > 0 ? selectedImages : undefined,
         });
+
+        // Trigger premium haptic feedback on send
+        ReactNativeHapticFeedback.trigger('impactLight', hapticOptions);
+
         setText('');
         // Clear selected images after sending
         setSelectedImages([]);
@@ -550,7 +554,10 @@ export const ChatInput = observer(
                     isThinkingEnabled && {backgroundColor: onSurfaceColor},
                     {borderColor: onSurfaceColorVariant},
                   ]}
-                  onPress={() => onThinkingToggle?.(!isThinkingEnabled)}
+                  onPress={() => {
+                    ReactNativeHapticFeedback.trigger('soft', hapticOptions);
+                    onThinkingToggle?.(!isThinkingEnabled);
+                  }}
                   accessibilityLabel={
                     isThinkingEnabled
                       ? l10n.components.chatInput.thinkingToggle.disableThinking

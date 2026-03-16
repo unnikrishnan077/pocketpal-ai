@@ -49,6 +49,7 @@ import {
 } from '../utils/types';
 
 import {ErrorState, createErrorState} from '../utils/errors';
+import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
 import {chatSessionRepository} from '../repositories/ChatSessionRepository';
 import {hasEnoughMemory} from '../hooks/useMemoryCheck';
 import {
@@ -1468,6 +1469,12 @@ class ModelStore {
         },
       );
       const t1 = Date.now();
+      // Trigger premium haptic when model is ready
+      ReactNativeHapticFeedback.trigger('notificationSuccess', {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      });
+
       console.log('init time: ', t1 - t0);
 
       await this.updateModelStopTokens(ctx, model);
